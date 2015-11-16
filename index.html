@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>El Mundo del Wifi</title>
+		<meta charset="utf-8" />
+		<script src="lib/synaptic.js"></script>
+		<script src="wifi.js"></script>
+		<script src="lib/heatmap.js"></script>
+		<script src="lib/Chart.Core.js"></script>
+		<script src="lib/Chart.Scatter.js"></script>
+		<link rel="stylesheet" href="lib/bootstrap-3.3.5-dist/css/bootstrap.css">
+		<style>
+			* {
+				font-family: Verdana;
+			}
+
+			body {
+			 	background-color: #F2F2F2;
+			}
+
+			h1 {
+				text-align: center;
+			}
+
+			h2 {
+				font-size: 1em;
+				text-decoration: underline;
+				font-weight: bold;
+			}
+
+			.bottom {
+				background: red;
+				position: relative;
+			}
+
+			.top {
+				/*background: rgba(0, 255, 0, 0.3);*/
+				position: absolute;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+			}
+		</style>
+	</head>
+	<body>
+	<h1>El Mundo del Wifi</h1>
+	<div class="row">
+	<div class="col-md-1">
+		&nbsp;
+	</div>
+	<div class="col-md-10">
+		<div class="panel panel-default">
+			<div class="panel-body">
+				<!-- Panel de configuracion -->
+				<h2>Panel de Configuración</h2>
+				<form>
+					<div class="form-group">
+						<label>Neuronas (entre 1 y 100)</label>
+						<input type="number" id="txtNeuronas" value="10" defaultValue="10" min="1" max="100" required oninput="cambiarTxtNeuronas(this.value)" onchange="cambiarTxtNeuronas(this.value)">
+						<input type="range" id="rngNeuronas" value="10" defaultValue="10" min="1" max="100" oninput="cambiarRngNeuronas(this.value)" onchange="cambiarRngNeuronas(this.value)">
+					</div>
+					<div class="form-group">
+						<label>Tasa de aprendizaje (entre 1% y 100%)</label>
+						<input type="number" id="txtAprendizaje" value="15" defaultValue="15" min="1" max="100" required oninput="cambiarTxtAprendizaje(this.value)" onchange="cambiarTxtAprendizaje(this.value)">
+						<input type="range" id="rngAprendizaje" value="15" defaultValue="15" min="1" max="100" oninput="cambiarRngAprendizaje(this.value)" onchange="cambiarRngAprendizaje(this.value)">
+					</div>
+					<div class="form-group">
+						<label>Iteraciones (entre 1 y 20,000)</label>
+						<input type="number" id="txtIteraciones" value="10000" defaultValue="10000" min="1" max="20000" required oninput="cambiarTxtIteraciones(this.value)" onchange="cambiarTxtIteraciones(this.value)">
+						<input type="range" id="rngIteraciones" value="10000" defaultValue="10000" min="1" max="20000" oninput="cambiarRngIteraciones(this.value)" onchange="cambiarRngIteraciones(this.value)">
+					</div>
+					<div class="form-group">
+						<div class="btn-group">
+							<button id="btnIniciar" class="btn btn-default" onclick="iniciar()">Iniciar</button>
+							<button id="btnDetener" class="btn btn-deafult" onclick="detener()" disabled="true">Detener</button>
+						</div>
+					</div>
+					<div class="form-group">
+						<label>Tasa de aceptaci&oacute;n (entre 0% y 100%)</label>
+						<input type="number" id="txtAceptacion" value="61" defaultValue="61" min="0" max="100" required disabled="true" oninput="cambiarTxtAceptacion(this.value)" onchange="cambiarTxtAceptacion(this.value)">
+						<input type="range" id="rngAceptacion" value="61" defaultValue="61" min="0" max="100" disabled="true" oninput="cambiarRngAceptacion(this.value)" onchange="cambiarRngAceptacion(this.value)">
+					</div>
+					<div class="form-group" style="display: none;">
+						<button id="btnSimular" class="btn btn-default" onclick="simular()" disabled="true">Simular</button>
+						<input type="number" id="txtX" value="0" defaultValue="0" min="0" max="100" required disabled="true">
+						<input type="number" id="txtY" value="0" defaultValue="0" min="0" max="100" required disabled="true">
+					</div>
+					<div class="form-group">
+						<p id="lblActivacion">Valor de activación: -</p>
+					</div>
+					<div class="form-group" style="display: none;">
+						<div class="btn-group">
+							<button id="btnPegar" class="btn btn-default" onclick="pegar(document.getElementById('txtX').value, document.getElementById('txtY').value)" disabled="true">Pegar</button>
+							<button id="btnPremiar" class="btn btn-default" onclick="premiar(document.getElementById('txtX').value, document.getElementById('txtY').value)" disabled="true">Premiar</button>
+						</div>
+					</div>
+					<div class="form-group">
+						<b>Instrucciones</b>
+						<ol>
+							<li><i>Click izquierdo</i> para pegarle al perro.</li>
+							<li><i>Click derecho</i> para premiar al perro.</li>
+						</ol>
+					</div>
+					<div class="form-group" style="display: none;">
+						<input type="text" id="arregloRojo" value="[]" />
+						<input type="text" id="arregloAzul" value="[]" />
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-1">
+		&nbsp;
+	</div>
+	</div>
+	<div class="row">
+	<div class="col-md-1">
+		&nbsp;
+	</div>
+	<div class="col-md-10">
+		<div class="panel panel-default">
+			<div class="panel-body">
+				<!-- Casa -->
+				<div id="casa" onmousedown="clickAbajo(event)" onmouseup="clickArriba(event)" oncontextmenu="return false" style="position:relative;cursor:url('img/prensa_small.png'), default; display: inline-block;margin:0 auto;">
+					<canvas id="canCasa" width="400" height="400" style="margin:0;padding:0;border:1px solid black;"></canvas>
+					<img src="img/wifi100.png" id='chucho' style="position:absolute;left:48px;top:32px;">
+					<img src="img/popo.png" id='popo' style="position:absolute;left:0px;top:0px;visibility:hidden;">
+				</div>
+		
+				<div style="display: inline-block; border: 1px solid black;position:relative;">
+					<!-- Mapa de Calor -->
+					<div id="heatmapArea" class="well" style="width:400px;padding:0;height:400px;cursor:pointer;border:1px solid black;display:inline-block;margin:0 auto;" class="bottom"></div>
+				
+					<!-- Grafica -->
+					<canvas id="grafica" class="top" style="width:400px;padding:0;height:400px;cursor:pointer;border:1px solid black;display:inline-block;margin:0 auto;"></canvas>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-1">
+		&nbsp;
+	</div>
+	</div>
+    <script> cargar(); </script>
+</body>
+</html>
